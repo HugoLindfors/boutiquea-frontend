@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
@@ -73,3 +74,7 @@ bun run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+=======
+# Boutiquea Front End
+Boutiquea is a store system developed for Ungdomskraft AB as part of the recruitment process; this is the front end developed using Nuxt.
+>>>>>>> 2e1452dfb78223c1d8d173accb67fa9ae2d2ff4a
