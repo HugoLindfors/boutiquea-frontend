@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>Make Order as Customer {{ customer?.fullName }}</h1>
+        <h1>Make Order as {{ customer?.fullName }}</h1>
         <div><strong>Total Price:</strong>{{ totalPrice }} kr</div>
         <ul v-if="products.length > 0" class="customers-container">
             <li v-for="product in products" :key="product.id" class="customer-container">
@@ -32,7 +32,7 @@
         </div>
         <div><strong>Total Amount:</strong>{{ totalAmount }}</div>
         <div><strong>Total Price:</strong>{{ totalPrice }} kr</div>
-        <button type="button" @click="confirmOrder()">Confirm
+        <button type="button" @click="confirmOrder(customer!.id, HARD_CODED_ORDER_ID, totalAmount, totalPrice)">Confirm
             Order</button>
     </div>
 </template>
@@ -66,9 +66,9 @@ const calculateTotalPrice = () => {
     totalPrice.value = markedItems.value.reduce((total, item) => total + item.price, 0);
 };
 
-const confirmOrder = () => {
+const confirmOrder = (customerId: string, orderId: string, totalAmount: number, totalPrice: string) => {
 
-    window.location.href = `/customers`;
+    window.location.href = `/customers?customerid=${customerId}?orderid=${orderId}?totalamount=${totalAmount}?totalprice=${totalPrice}`;
 };
 
 interface Customer {
@@ -81,10 +81,8 @@ interface Customer {
 // This should be filled up
 interface Order {
     id: number;
-    products: Product[];
     totalAmount: number;
     totalPrice: number;
-    orderDate: string;
 }
 
 interface Product {
@@ -95,10 +93,10 @@ interface Product {
 }
 
 const customer = ref<Customer | null>(null);
-const customers = ref<Customer[]>([]);
 const products = ref<Product[]>([]);
 const loading = ref(true);
 const error = ref(false);
+const HARD_CODED_ORDER_ID = 0;
 
 async function fetchCustomer(customerId: number): Promise<Customer | null> {
     try {
@@ -124,23 +122,6 @@ async function fetchCustomer(customerId: number): Promise<Customer | null> {
     }
 }
 
-async function fetchCustomers(): Promise<Customer[]> {
-    try {
-        const response = await fetch('http://localhost:5141/api/customers');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: Product[] = await response.json();
-        return data;
-    } catch (err) {
-        error.value = true;
-        console.error('Error fetching customers:', err);
-        return [];
-    } finally {
-        loading.value = false;
-    }
-}
-
 async function fetchProducts(): Promise<Product[]> {
     try {
         const response = await fetch('http://localhost:5141/api/products');
@@ -160,15 +141,12 @@ async function fetchProducts(): Promise<Product[]> {
 
 onMounted(async () => {
     products.value = await fetchProducts();
-    customers.value = await fetchCustomers();
 
     let customerId: string | null = null;
     let currentUrl: string | null = null;
 
 
     currentUrl = window.location.href;
-    console.log(currentUrl);
-
     const urlParams = new URLSearchParams(window.location.search);
     customerId = urlParams.get('customerid');
 

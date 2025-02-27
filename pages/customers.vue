@@ -1,7 +1,6 @@
 <template>
     <div>
         <button @click="switchView('/customers')">Customers</button>
-        <button @click="switchView('/orders')">Orders</button>
         <button @click="switchView('/products')">Products</button>
         <h1>Customer Details</h1>
         <ul v-if="customers.length > 0" class="customers-container">
@@ -20,8 +19,7 @@
                 <h2>Orders</h2>
                 <ul v-if="customer.orders && customer.orders.length > 0">
                     <li v-for="order in customer.orders" :key="order.id">
-                        Order ID: {{ order.id }}, Total: {{ order.totalAmount }}, Date: {{ formatDate(order.orderDate)
-                        }}
+                        Order ID: {{ order.id }}, Total: {{ order.totalAmount }}, Total Cost: {{ order.totalPrice }}
                     </li>
                 </ul>
                 <p v-else>No orders found.</p>
@@ -46,16 +44,14 @@ interface Customer {
     id: number;
     fullName: string;
     registrationDate: string;
-    orders?: string[];
+    orders: Order[];
 }
 
 // This should be filled up
 interface Order {
     id: number;
-    products: Product[];
     totalAmount: number;
     totalPrice: number;
-    orderDate: string;
 }
 
 interface Product {
@@ -67,6 +63,7 @@ interface Product {
 
 
 const shouldDisplayMoreInfo = ref(false);
+const customer = ref<Customer | null>(null);
 const customers = ref<Customer[]>([]);
 const loading = ref(true);
 const error = ref(false);
@@ -78,6 +75,30 @@ const makeOrder = (id: number) => {
 const switchView = (newView: string) => {
     window.location.href = `${newView}`;
 };
+
+async function fetchCustomer(customerId: number): Promise<Customer | null> {
+    try {
+        const response = await fetch(`http://localhost:5141/api/customers`);
+        if (!response.ok) {
+            if (response.status === 404) {
+                return null;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const dataArray: Customer[] = await response.json();
+        try {
+            return dataArray.find(customer => customer.id === customerId);
+        } catch {
+            return null;
+        }
+    } catch (err) {
+        error.value = true;
+        console.error('Error fetching customer:', err);
+        return null;
+    } finally {
+        loading.value = false;
+    }
+}
 
 async function fetchCustomers(): Promise<Customer[]> {
     try {
@@ -98,6 +119,28 @@ async function fetchCustomers(): Promise<Customer[]> {
 
 onMounted(async () => {
     customers.value = await fetchCustomers();
+
+    let customerId: string | null = null;
+    let currentUrl: string | null = null;
+    let orderId: number | null = null;
+    let totalAmount: number | null = null;
+    let totalPrice: number | null = null;
+
+    currentUrl = window.location.href;
+    const urlParams = new URLSearchParams(window.location.search);
+    customerId = urlParams.get('customerid');
+    orderId = Number(urlParams.get('orderid'));
+    totalAmount = Number(urlParams.get('totalamount'));
+    totalPrice = Number(urlParams.get('totalprice'));
+
+    if (customerId) {
+        console.log("customerId:", customerId);
+        customer.value = await fetchCustomer(Number(customerId));
+        customer.value?.orders?.push({ "id": orderId, "totalAmount": totalAmount, "totalPrice": totalPrice });
+        console.log(customer.value);
+    } else {
+        console.log("customerId parameter not found");
+    }
 });
 
 const formatDate = (dateString: string) => {
