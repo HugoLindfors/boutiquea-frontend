@@ -77,13 +77,6 @@ interface Customer {
   orders?: string[];
 }
 
-// This should be filled up
-interface Order {
-  id: number;
-  totalAmount: number;
-  totalPrice: number;
-}
-
 interface Product {
   id: number;
   name: string;
@@ -95,7 +88,7 @@ const customer = ref<Customer | null>(null);
 const products = ref<Product[]>([]);
 const loading = ref(true);
 const error = ref(false);
-const HARD_CODED_ORDER_ID = 0;
+const HARD_CODED_ORDER_ID = 1;
 
 async function fetchCustomer(customerId: number): Promise<Customer | null> {
   try {

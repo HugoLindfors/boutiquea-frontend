@@ -16,13 +16,12 @@
         <div v-show="shouldDisplayMoreInfo[customer.id]" class="more-info">
           <p><strong>Registration Date:</strong> {{ customer.registrationDate.substring(0, 12) }}</p>
         </div>
-        <h2>Orders</h2>
+        <h2 v-if="customer.orders && customer.orders.length > 0">Order</h2>
         <ul v-if="customer.orders && customer.orders.length > 0">
           <li v-for="order in customer.orders" :key="order.id">
             <p>Total: {{ order.totalAmount }} Items, Total Cost: {{ order.totalPrice }} kr</p>
           </li>
         </ul>
-        <p v-else>No orders found.</p>
       </li>
     </ul>
     <div v-else-if="loading">
@@ -47,7 +46,6 @@ interface Customer {
   orders: Order[];
 }
 
-// This should be filled up
 interface Order {
   id: number;
   totalAmount: number;
@@ -63,7 +61,6 @@ interface Product {
 
 
 const shouldDisplayMoreInfo = ref<boolean[]>([]);
-const customer = ref<Customer | null>(null);
 const customers = ref<Customer[]>([]);
 const loading = ref(true);
 const error = ref(false);
@@ -99,12 +96,11 @@ onMounted(async () => {
   const urlParams = new URLSearchParams(window.location.search);
 
   let customerId: string | null = urlParams.get('customerid');
-  let orderId: number | null = Number(urlParams.get('orderid'));
-  let totalAmount: number | null = Number(urlParams.get('totalamount'));
-  let totalPrice: number | null = Number(urlParams.get('totalprice'));
+  let orderId: number | null = Number(urlParams.get('orderid')) || null;
+  let totalAmount: number | null = Number(urlParams.get('totalamount')) || null;
+  let totalPrice: number | null = Number(urlParams.get('totalprice')) || null;
 
-  customers.value![Number(customerId)].orders!.push({ "id": orderId, "totalAmount": totalAmount, "totalPrice": totalPrice });
-  console.log(customer.value);
+  if (orderId && totalAmount && totalPrice) customers.value![Number(customerId)].orders.push({ "id": orderId, "totalAmount": totalAmount, "totalPrice": totalPrice });
 });
 </script>
 
