@@ -161,8 +161,24 @@ async function fetchProducts(): Promise<Product[]> {
 onMounted(async () => {
     products.value = await fetchProducts();
     customers.value = await fetchCustomers();
-    let customerId = 0;
-    customer.value = await fetchCustomer(customerId);
+
+    let customerId: string | null = null;
+    let currentUrl: string | null = null;
+
+
+    currentUrl = window.location.href;
+    console.log(currentUrl);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    customerId = urlParams.get('customerid');
+
+    if (customerId) {
+        console.log("customerId:", customerId);
+        customer.value = await fetchCustomer(Number(customerId));
+    } else {
+        console.log("customerId parameter not found");
+    }
+
     console.log(customer);
 });
 </script>
