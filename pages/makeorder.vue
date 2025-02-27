@@ -1,6 +1,7 @@
 <template>
     <div>
-        <h1>Customer Details</h1>
+        <h1>Make Order as Customer {{ customer?.fullName }}</h1>
+        <div><strong>Total Price:</strong>{{ totalPrice }} kr</div>
         <ul v-if="products.length > 0" class="customers-container">
             <li v-for="product in products" :key="product.id" class="customer-container">
                 <p>{{ product.name }}</p>
@@ -9,8 +10,11 @@
                         v-else>Show</span>
                     additional
                     information</button>
-                <button @click="addToCart(customer.id, product.id)" type="button"
-                    class="display-info-toggle btn btn-primary">Add to cart</button>
+                <button @click="addToCart(product)" type="button" class="display-info-toggle btn btn-primary">Add to
+                    cart</button>
+                <button @click="removeFromCart(product)" type="button"
+                    class="display-info-toggle btn btn-primary">Remove from
+                    cart</button>
                 <div v-show="shouldDisplayMoreInfo" class="more-info">
                     <p><strong>Price:</strong> {{ product.price }} kr</p>
                     <p><strong>Quantity in Stock:</strong> {{ product.quantityInStock }}</p>
@@ -26,6 +30,10 @@
         <div v-else>
             <p>Products not found.</p>
         </div>
+        <div><strong>Total Amount:</strong>{{ totalAmount }}</div>
+        <div><strong>Total Price:</strong>{{ totalPrice }} kr</div>
+        <button type="button" @click="confirmOrder()">Confirm
+            Order</button>
     </div>
 </template>
 
@@ -33,6 +41,35 @@
 import { ref, onMounted } from 'vue';
 
 const shouldDisplayMoreInfo = ref(false);
+const markedItems = ref<Product[]>([]);
+const totalAmount = ref(0);
+const totalPrice = ref(0);
+
+const addToCart = (product: Product) => {
+    product.quantityInStock--;
+    markedItems.value.push(product);
+    calculateTotalPrice();
+    totalAmount.value++;
+};
+
+const removeFromCart = (product: Product) => {
+    const index = markedItems.value.findIndex(item => item.id === product.id);
+    if (index !== -1) {
+        product.quantityInStock++;
+        markedItems.value.splice(index, 1);
+        calculateTotalPrice();
+        totalAmount.value--;
+    }
+};
+
+const calculateTotalPrice = () => {
+    totalPrice.value = markedItems.value.reduce((total, item) => total + item.price, 0);
+};
+
+const confirmOrder = () => {
+
+    window.location.href = `/customers`;
+};
 
 interface Customer {
     id: number;
@@ -41,46 +78,64 @@ interface Customer {
     orders?: string[];
 }
 
-// interface Order {
-//     id: number;
-//     totalAmount: number;
-//     orderDate: string;
-// }
+// This should be filled up
+interface Order {
+    id: number;
+    products: Product[];
+    totalAmount: number;
+    totalPrice: number;
+    orderDate: string;
+}
 
 interface Product {
     id: number;
     name: string;
     price: number;
-    quantityInStock: number;
+    quantityInStock: number; // Should deincrement for every order
 }
 
-const customer = ref<Customer>();
+const customer = ref<Customer | null>(null);
+const customers = ref<Customer[]>([]);
 const products = ref<Product[]>([]);
 const loading = ref(true);
 const error = ref(false);
 
-const urlParams = new URLSearchParams(window.location.search);
-const customerId = urlParams.get('customerid');
-
-const addToCart = (customerId: number, productId: number) => {
-
-};
-
 async function fetchCustomer(customerId: number): Promise<Customer | null> {
     try {
-        const response = await fetch(`http://localhost:5141/api/customers/${customerId}`);
+        const response = await fetch(`http://localhost:5141/api/customers`);
         if (!response.ok) {
             if (response.status === 404) {
                 return null;
             }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data: Customer = await response.json();
-        return data;
+        const dataArray: Customer[] = await response.json();
+        try {
+            return dataArray.find(customer => customer.id === customerId);
+        } catch {
+            return null;
+        }
     } catch (err) {
         error.value = true;
         console.error('Error fetching customer:', err);
         return null;
+    } finally {
+        loading.value = false;
+    }
+}
+
+async function fetchCustomers(): Promise<Customer[]> {
+    try {
+        const response = await fetch('http://localhost:5141/api/customers');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data: Product[] = await response.json();
+        return data;
+    } catch (err) {
+        error.value = true;
+        console.error('Error fetching customers:', err);
+        return [];
     } finally {
         loading.value = false;
     }
@@ -105,13 +160,11 @@ async function fetchProducts(): Promise<Product[]> {
 
 onMounted(async () => {
     products.value = await fetchProducts();
-    customer.value = await fetchCustomer(Number(customerId));
+    customers.value = await fetchCustomers();
+    let customerId = 0;
+    customer.value = await fetchCustomer(customerId);
+    console.log(customer);
 });
-
-const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-};
 </script>
 
 <style>

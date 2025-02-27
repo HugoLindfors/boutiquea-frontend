@@ -1,6 +1,9 @@
 <template>
     <div>
-        <h1>Customer Details</h1>
+        <button @click="switchView('/customers')">Customers</button>
+        <button @click="switchView('/orders')">Orders</button>
+        <button @click="switchView('/products')">Products</button>
+        <h1>Product Details</h1>
         <ul v-if="products.length > 0" class="customers-container">
             <li v-for="product in products" :key="product.id" class="customer-container">
                 <p>{{ product.name }}</p>
@@ -13,6 +16,11 @@
                     <p><strong>Price:</strong> {{ product.price }} kr</p>
                     <p><strong>Quantity in Stock:</strong> {{ product.quantityInStock }}</p>
                 </div>
+                <button @click="addToCart(product)" type="button" class="display-info-toggle btn btn-primary">Add to
+                    cart</button>
+                <button @click="removeFromCart(product)" type="button"
+                    class="display-info-toggle btn btn-primary">Remove from
+                    cart</button>
             </li>
         </ul>
         <div v-else-if="loading">
@@ -24,6 +32,7 @@
         <div v-else>
             <p>Products not found.</p>
         </div>
+        <div><strong>Total Price:</strong>{{ totalPrice }} kr</div>
     </div>
 </template>
 
@@ -31,19 +40,29 @@
 import { ref, onMounted } from 'vue';
 
 const shouldDisplayMoreInfo = ref(false);
+const markedItems = ref<Product[]>([]);
+const totalPrice = ref(0);
 
-interface Customer {
-    id: number;
-    fullName: string;
-    registrationDate: string;
-    orders?: string[];
-}
+const switchView = (newView: string) => {
+    window.location.href = `${newView}`;
+};
 
-// interface Order {
-//     id: number;
-//     totalAmount: number;
-//     orderDate: string;
-// }
+const addToCart = (product: Product) => {
+    markedItems.value.push(product);
+    calculateTotalPrice();
+};
+
+const removeFromCart = (product: Product) => {
+    const index = markedItems.value.findIndex(item => item.id === product.id);
+    if (index !== -1) {
+        markedItems.value.splice(index, 1);
+        calculateTotalPrice();
+    }
+};
+
+const calculateTotalPrice = () => {
+    totalPrice.value = markedItems.value.reduce((total, item) => total + item.price, 0);
+};
 
 interface Product {
     id: number;
@@ -77,11 +96,6 @@ async function fetchProducts(): Promise<Product[]> {
 onMounted(async () => {
     products.value = await fetchProducts();
 });
-
-const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-};
 </script>
 
 <style>

@@ -1,11 +1,14 @@
 <template>
     <div>
+        <button @click="switchView('/customers')">Customers</button>
+        <button @click="switchView('/orders')">Orders</button>
+        <button @click="switchView('/products')">Products</button>
         <h1>Customer Details</h1>
         <ul v-if="customers.length > 0" class="customers-container">
             <li v-for="customer in customers" :key="customer.id" class="customer-container">
                 <p>{{ customer.fullName }}</p>
-                <button @click="makeOrder(customer.id)" type="button"
-                    class="display-info-toggle btn btn-primary">Make order as</button>
+                <button @click="makeOrder(customer.id)" type="button" class="display-info-toggle btn btn-primary">Make
+                    order as</button>
                 <button @click="shouldDisplayMoreInfo = !shouldDisplayMoreInfo" type="button"
                     class="display-info-toggle btn btn-primary"><span v-if="shouldDisplayMoreInfo">Hide</span><span
                         v-else>Show</span>
@@ -14,14 +17,14 @@
                 <div v-show="shouldDisplayMoreInfo" class="more-info">
                     <p><strong>Registration Date:</strong> {{ formatDate(customer.registrationDate) }}</p>
                 </div>
-                <!-- <h2>Orders</h2>
+                <h2>Orders</h2>
                 <ul v-if="customer.orders && customer.orders.length > 0">
                     <li v-for="order in customer.orders" :key="order.id">
                         Order ID: {{ order.id }}, Total: {{ order.totalAmount }}, Date: {{ formatDate(order.orderDate)
                         }}
                     </li>
                 </ul>
-                <p v-else>No orders found.</p> -->
+                <p v-else>No orders found.</p>
             </li>
         </ul>
         <div v-else-if="loading">
@@ -46,11 +49,22 @@ interface Customer {
     orders?: string[];
 }
 
-// interface Order {
-//     id: number;
-//     totalAmount: number;
-//     orderDate: string;
-// }
+// This should be filled up
+interface Order {
+    id: number;
+    products: Product[];
+    totalAmount: number;
+    totalPrice: number;
+    orderDate: string;
+}
+
+interface Product {
+    id: number;
+    name: string;
+    price: number;
+    quantityInStock: number;
+}
+
 
 const shouldDisplayMoreInfo = ref(false);
 const customers = ref<Customer[]>([]);
@@ -59,6 +73,10 @@ const error = ref(false);
 
 const makeOrder = (id: number) => {
     window.location.href = `/makeorder?customerid=${id}`;
+};
+
+const switchView = (newView: string) => {
+    window.location.href = `${newView}`;
 };
 
 async function fetchCustomers(): Promise<Customer[]> {
