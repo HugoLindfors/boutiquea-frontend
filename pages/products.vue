@@ -1,35 +1,28 @@
 <template>
     <div>
         <h1>Customer Details</h1>
-        <ul v-if="customers.length > 0" class="customers-container">
-            <li v-for="customer in customers" :key="customer.id" class="customer-container">
-                <p>{{ customer.fullName }}</p>
+        <ul v-if="products.length > 0" class="customers-container">
+            <li v-for="product in products" :key="product.id" class="customer-container">
+                <p>{{ product.name }}</p>
                 <button @click="shouldDisplayMoreInfo = !shouldDisplayMoreInfo" type="button"
                     class="display-info-toggle btn btn-primary"><span v-if="shouldDisplayMoreInfo">Hide</span><span
                         v-else>Show</span>
                     additional
                     information</button>
                 <div v-show="shouldDisplayMoreInfo" class="more-info">
-                    <p><strong>Registration Date:</strong> {{ formatDate(customer.registrationDate) }}</p>
+                    <p><strong>Price:</strong> {{ product.price }} kr</p>
+                    <p><strong>Quantity in Stock:</strong> {{ product.quantityInStock }}</p>
                 </div>
-                <!-- <h2>Orders</h2>
-                <ul v-if="customer.orders && customer.orders.length > 0">
-                    <li v-for="order in customer.orders" :key="order.id">
-                        Order ID: {{ order.id }}, Total: {{ order.totalAmount }}, Date: {{ formatDate(order.orderDate)
-                        }}
-                    </li>
-                </ul>
-                <p v-else>No orders found.</p> -->
             </li>
         </ul>
         <div v-else-if="loading">
-            <p>Loading customer data...</p>
+            <p>Loading procucts data...</p>
         </div>
         <div v-else-if="error">
-            <p>Error loading customer: {{ error }}</p>
+            <p>Error loading products: {{ error }}</p>
         </div>
         <div v-else>
-            <p>Customer not found.</p>
+            <p>Products not found.</p>
         </div>
     </div>
 </template>
@@ -52,18 +45,25 @@ interface Customer {
 //     orderDate: string;
 // }
 
-const customers = ref<Customer[]>([]);
+interface Product {
+    id: number;
+    name: string;
+    price: number;
+    quantityInStock: number;
+}
+
+const products = ref<Product[]>([]);
 const loading = ref(true);
 const error = ref(false);
 
 
-async function fetchCustomers(): Promise<Customer[]> {
+async function fetchProducts(): Promise<Product[]> {
     try {
-        const response = await fetch('http://localhost:5141/api/customers');
+        const response = await fetch('http://localhost:5141/api/products');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data: Customer[] = await response.json();
+        const data: Product[] = await response.json();
         return data;
     } catch (err) {
         error.value = true;
@@ -75,8 +75,7 @@ async function fetchCustomers(): Promise<Customer[]> {
 }
 
 onMounted(async () => {
-    customers.value = await fetchCustomers();
-    let familyMembers = customers.value;
+    products.value = await fetchProducts();
 });
 
 const formatDate = (dateString: string) => {
