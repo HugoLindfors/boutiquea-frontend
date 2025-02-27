@@ -78,3 +78,22 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 # Boutiquea Front End
 Boutiquea is a store system developed for Ungdomskraft AB as part of the recruitment process; this is the front end developed using Nuxt.
 >>>>>>> 2e1452dfb78223c1d8d173accb67fa9ae2d2ff4a
+
+# Set Up
+Make sure to have NUXT installed
+
+Install repo
+
+Enter repo
+
+Type `npm install`
+
+Type `npm run dev`
+
+Make sure to start the Web API as well, for that make sure to have .NET 9.0 installed
+
+Install the Web API repo
+
+Enter repo
+
+Type `dotnet run`
