@@ -14,7 +14,7 @@
           additional
           information</button>
         <div v-show="shouldDisplayMoreInfo[customer.id]" class="more-info">
-          <p><strong>Registration Date:</strong> {{ formatDate(customer.registrationDate) }}</p>
+          <p><strong>Registration Date:</strong> {{ customer.registrationDate.substring(0, 12) }}</p>
         </div>
         <h2>Orders</h2>
         <ul v-if="customer.orders && customer.orders.length > 0">
@@ -76,30 +76,6 @@ const switchView = (newView: string) => {
   window.location.href = `${newView}`;
 };
 
-async function fetchCustomer(customerId: number): Promise<Customer | null> {
-  try {
-    const response = await fetch(`http://localhost:5141/api/customers`);
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const dataArray: Customer[] = await response.json();
-    try {
-      return dataArray.find(customer => customer.id === customerId);
-    } catch {
-      return null;
-    }
-  } catch (err) {
-    error.value = true;
-    console.error('Error fetching customer:', err);
-    return null;
-  } finally {
-    loading.value = false;
-  }
-}
-
 async function fetchCustomers(): Promise<Customer[]> {
   try {
     const response = await fetch('http://localhost:5141/api/customers');
@@ -120,36 +96,16 @@ async function fetchCustomers(): Promise<Customer[]> {
 onMounted(async () => {
   customers.value = await fetchCustomers();
 
-  let customerId: string | null = null;
-  let currentUrl: string | null = null;
-  let orderId: number | null = null;
-  let totalAmount: number | null = null;
-  let totalPrice: number | null = null;
-
-  currentUrl = window.location.href;
   const urlParams = new URLSearchParams(window.location.search);
-  customerId = urlParams.get('customerid');
-  orderId = Number(urlParams.get('orderid'));
-  totalAmount = Number(urlParams.get('totalamount'));
-  totalPrice = Number(urlParams.get('totalprice'));
 
-  if (customerId) {
-    console.log("customerId:", customerId);
-    console.log("orderId:", orderId);
-    console.log("totalAmount:", totalAmount);
-    console.log("totalPrice:", totalPrice);
-    customer.value = await fetchCustomer(Number(customerId));
-    customers.value![Number(customerId)].orders!.push({ "id": orderId, "totalAmount": totalAmount, "totalPrice": totalPrice });
-    console.log(customer.value);
-  } else {
-    console.log("customerId parameter not found");
-  }
+  let customerId: string | null = urlParams.get('customerid');
+  let orderId: number | null = Number(urlParams.get('orderid'));
+  let totalAmount: number | null = Number(urlParams.get('totalamount'));
+  let totalPrice: number | null = Number(urlParams.get('totalprice'));
+
+  customers.value![Number(customerId)].orders!.push({ "id": orderId, "totalAmount": totalAmount, "totalPrice": totalPrice });
+  console.log(customer.value);
 });
-
-const formatDate = (dateString: string) => {
-  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-  return new Date(dateString).toLocaleDateString(undefined, options);
-};
 </script>
 
 <style>
