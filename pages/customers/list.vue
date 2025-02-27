@@ -19,7 +19,7 @@
         <h2>Orders</h2>
         <ul v-if="customer.orders && customer.orders.length > 0">
           <li v-for="order in customer.orders" :key="order.id">
-            Order-Id: {{ order.id }}, Total: {{ order.totalAmount }}, Total Cost: {{ order.totalPrice }}
+            <p>Total: {{ order.totalAmount }} Items, Total Cost: {{ order.totalPrice }} kr</p>
           </li>
         </ul>
         <p v-else>No orders found.</p>
