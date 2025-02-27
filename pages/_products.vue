@@ -1,6 +1,7 @@
 <template>
     <div>
         <button @click="switchView('/customers')">Customers</button>
+        <button @click="switchView('/pendingorders')">Pending Orders</button>
         <button @click="switchView('/products')">Products</button>
         <h1>Product Details</h1>
         <ul v-if="products.length > 0" class="customers-container">

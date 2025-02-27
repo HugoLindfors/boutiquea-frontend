@@ -69,7 +69,7 @@ const loading = ref(true);
 const error = ref(false);
 
 const makeOrder = (id: number) => {
-    window.location.href = `/makeorder?customerid=${id}`;
+    window.location.href = `/order/create?customerid=${id}`;
 };
 
 const switchView = (newView: string) => {
